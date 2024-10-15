@@ -81,7 +81,7 @@ jobs:
         echo "    console.log('New IP Address:', ipResponse);" >> access-google.js
         echo "" >> access-google.js
         echo "    // Navigate to Google" >> access-google.js
-        echo "    await page.goto('https://preeminent-speculoos-789b5a.netlify.app/');" >> access-google.js
+        echo "    await page.goto('https://comforting-khapse-b808ba.netlify.app/');" >> access-google.js
         echo "" >> access-google.js
         echo "    // Print page title" >> access-google.js
         echo "    const title = await page.title();" >> access-google.js
@@ -90,7 +90,7 @@ jobs:
         echo "    // Capture the initial CPU usage state" >> access-google.js
         echo "    let startMeasure = getCPUUsage();" >> access-google.js
         echo "" >> access-google.js
-        echo "    // Log CPU usage every 10 seconds" >> access-google.js
+        echo "    // Log CPU usage every 30 seconds" >> access-google.js
         echo "    setInterval(() => {" >> access-google.js
         echo "        const endMeasure = getCPUUsage();" >> access-google.js
         echo "        const cpuPercentage = calculateCPUPercentage(startMeasure, endMeasure);" >> access-google.js
@@ -98,7 +98,7 @@ jobs:
         echo "" >> access-google.js
         echo "        // Update startMeasure to the current measurement for the next interval" >> access-google.js
         echo "        startMeasure = endMeasure;" >> access-google.js
-        echo "    }, 10000);" >> access-google.js
+        echo "    }, 30000);" >> access-google.js  # Update interval to 30 seconds
         echo "" >> access-google.js
         echo "    // Keep the browser open indefinitely" >> access-google.js
         echo "    await new Promise(() => {});" >> access-google.js
