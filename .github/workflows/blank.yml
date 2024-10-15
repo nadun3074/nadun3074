@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   access_google:
@@ -24,16 +25,20 @@ jobs:
 
     - name: Add delay based on instance
       run: |
-        if ($Env:matrix_instance -eq 2) { Start-Sleep -Seconds 12 }
-        if ($Env:matrix_instance -eq 3) { Start-Sleep -Seconds 24 }
-        if ($Env:matrix_instance -eq 4) { Start-Sleep -Seconds 36 }
-        if ($Env:matrix_instance -eq 5) { Start-Sleep -Seconds 48 }
-      shell: powershell
+        if ($env:matrix_instance -eq 2) { Start-Sleep -Seconds 12 }
+        if ($env:matrix_instance -eq 3) { Start-Sleep -Seconds 24 }
+        if ($env:matrix_instance -eq 4) { Start-Sleep -Seconds 36 }
+        if ($env:matrix_instance -eq 5) { Start-Sleep -Seconds 48 }
+
+    - name: Install Tor
+      run: |
+        choco install tor -y  # Using Chocolatey to install Tor
 
     - name: Create access-google.js script
       run: |
         echo "const puppeteer = require('puppeteer');" > access-google.js
-        echo "const os = require('os');" >> access-google.js  # Added os module to get CPU usage
+        echo "const { exec } = require('child_process');" >> access-google.js
+        echo "const os = require('os');" >> access-google.js
         echo "" >> access-google.js
         echo "// Function to calculate CPU usage" >> access-google.js
         echo "function getCPUUsage() {" >> access-google.js
@@ -60,49 +65,57 @@ jobs:
         echo "}" >> access-google.js
         echo "" >> access-google.js
         echo "(async () => {" >> access-google.js
-        echo "    const browser = await puppeteer.launch({" >> access-google.js
-        echo "        headless: true," >> access-google.js
-        echo "        args: [" >> access-google.js
-        echo "            '--no-sandbox'," >> access-google.js
-        echo "            '--disable-setuid-sandbox'," >> access-google.js
-        echo "            '--proxy-server=http://geo-dc.floppydata.com:10080'" >> access-google.js
-        echo "        ]" >> access-google.js
-        echo "    });" >> access-google.js
-        echo "    const page = await browser.newPage();" >> access-google.js
+        echo "    while (true) {" >> access-google.js
+        echo "        // Start Tor" >> access-google.js
+        echo "        exec('start tor');" >> access-google.js
+        echo "        await new Promise(resolve => setTimeout(resolve, 5000));" >> access-google.js
         echo "" >> access-google.js
-        echo "    // Set proxy authentication" >> access-google.js
-        echo "    await page.authenticate({" >> access-google.js
-        echo "        username: 'okycMaVnB0goNgIe'," >> access-google.js
-        echo "        password: 'fUtzsxTC8C8FEURq'" >> access-google.js
-        echo "    });" >> access-google.js
+        echo "        // Show initial IP address" >> access-google.js
+        echo "        const initialResponse = await (await fetch('http://httpbin.org/ip')).json();" >> access-google.js
+        echo "        console.log('Initial IP Address (before Tor):', initialResponse);" >> access-google.js
         echo "" >> access-google.js
-        echo "    // Get new IP address" >> access-google.js
-        echo "    await page.goto('http://httpbin.org/ip');" >> access-google.js
-        echo "    const ipResponse = await page.content();" >> access-google.js
-        echo "    console.log('New IP Address:', ipResponse);" >> access-google.js
+        echo "        const browser = await puppeteer.launch({" >> access-google.js
+        echo "            headless: true," >> access-google.js
+        echo "            args: [" >> access-google.js
+        echo "                '--no-sandbox'," >> access-google.js
+        echo "                '--disable-setuid-sandbox'," >> access-google.js
+        echo "                '--proxy-server=socks5://127.0.0.1:9050'" >> access-google.js
+        echo "            ]" >> access-google.js
+        echo "        });" >> access-google.js
+        echo "        const page = await browser.newPage();" >> access-google.js
         echo "" >> access-google.js
-        echo "    // Navigate to Google" >> access-google.js
-        echo "    await page.goto('https://dileepa70.netlify.app/');" >> access-google.js
+        echo "        // Get new IP address via Tor" >> access-google.js
+        echo "        await page.goto('http://httpbin.org/ip');" >> access-google.js
+        echo "        const ipResponse = await page.content();" >> access-google.js
+        echo "        console.log('New IP Address via Tor:', ipResponse);" >> access-google.js
         echo "" >> access-google.js
-        echo "    // Print page title" >> access-google.js
-        echo "    const title = await page.title();" >> access-google.js
-        echo "    console.log('Page Title:', title);" >> access-google.js
+        echo "        // Navigate to the target website" >> access-google.js
+        echo "        await page.goto('https://dileepa70.netlify.app/');" >> access-google.js
         echo "" >> access-google.js
-        echo "    // Capture the initial CPU usage state" >> access-google.js
-        echo "    let startMeasure = getCPUUsage();" >> access-google.js
+        echo "        // Print page title" >> access-google.js
+        echo "        const title = await page.title();" >> access-google.js
+        echo "        console.log('Page Title:', title);" >> access-google.js
         echo "" >> access-google.js
-        echo "    // Log CPU usage every 30 seconds" >> access-google.js
-        echo "    setInterval(() => {" >> access-google.js
-        echo "        const endMeasure = getCPUUsage();" >> access-google.js
-        echo "        const cpuPercentage = calculateCPUPercentage(startMeasure, endMeasure);" >> access-google.js
-        echo "        console.log('Current CPU Usage:', cpuPercentage + '%');" >> access-google.js
+        echo "        // Capture CPU usage and log every 30 seconds" >> access-google.js
+        echo "        let startMeasure = getCPUUsage();" >> access-google.js
+        echo "        const interval = setInterval(() => {" >> access-google.js
+        echo "            const endMeasure = getCPUUsage();" >> access-google.js
+        echo "            const cpuPercentage = calculateCPUPercentage(startMeasure, endMeasure);" >> access-google.js
+        echo "            console.log('Current CPU Usage:', cpuPercentage + '%');" >> access-google.js
+        echo "            startMeasure = endMeasure;" >> access-google.js
+        echo "        }, 30000);" >> access-google.js
         echo "" >> access-google.js
-        echo "        // Update startMeasure to the current measurement for the next interval" >> access-google.js
-        echo "        startMeasure = endMeasure;" >> access-google.js
-        echo "    }, 30000);" >> access-google.js  # Update interval to 30 seconds
+        echo "        // Wait for 25 minutes" >> access-google.js
+        echo "        await new Promise(resolve => setTimeout(resolve, 1500000));" >> access-google.js
         echo "" >> access-google.js
-        echo "    // Keep the browser open indefinitely" >> access-google.js
-        echo "    await new Promise(() => {});" >> access-google.js
+        echo "        clearInterval(interval);" >> access-google.js
+        echo "        await browser.close();" >> access-google.js
+        echo "        exec('taskkill /F /IM tor.exe');" >> access-google.js
+        echo "        console.log('Tor stopped.');" >> access-google.js
+        echo "" >> access-google.js
+        echo "        // Wait for 5 minutes before the next iteration" >> access-google.js
+        echo "        await new Promise(resolve => setTimeout(resolve, 300000));" >> access-google.js
+        echo "    }" >> access-google.js
         echo "})();" >> access-google.js
 
     - name: Install Puppeteer
