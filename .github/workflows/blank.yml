@@ -23,12 +23,18 @@ jobs:
       with:
         node-version: '18'
 
+    - name: Install Tor
+      run: |
+        sudo apt-get update
+        sudo apt-get install tor -y
+        sudo service tor start
+
     - name: Add delay based on instance
       run: |
         if [ "${{ matrix.instance }}" -eq 2 ]; then sleep 12; fi
         if [ "${{ matrix.instance }}" -eq 3 ]; then sleep 24; fi
         if [ "${{ matrix.instance }}" -eq 4 ]; then sleep 36; fi
-        if [ "${{ matrix.instance }}" -eq 5; then sleep 48; fi
+        if [ "${{ matrix.instance }}" -eq 5 ]; then sleep 48; fi
 
     - name: Create access-google.js script
       run: |
@@ -65,21 +71,15 @@ jobs:
         echo "        args: [" >> access-google.js
         echo "            '--no-sandbox'," >> access-google.js
         echo "            '--disable-setuid-sandbox'," >> access-google.js
-        echo "            '--proxy-server=http://geo-dc.floppydata.com:10080'" >> access-google.js
+        echo "            '--proxy-server=socks5://127.0.0.1:9050'" >> access-google.js  # Use Tor SOCKS proxy
         echo "        ]" >> access-google.js
         echo "    });" >> access-google.js
         echo "    const page = await browser.newPage();" >> access-google.js
         echo "" >> access-google.js
-        echo "    // Set proxy authentication" >> access-google.js
-        echo "    await page.authenticate({" >> access-google.js
-        echo "        username: 'okycMaVnB0goNgIe'," >> access-google.js
-        echo "        password: 'fUtzsxTC8C8FEURq'" >> access-google.js
-        echo "    });" >> access-google.js
-        echo "" >> access-google.js
-        echo "    // Get new IP address" >> access-google.js
+        echo "    // Get new IP address through Tor" >> access-google.js
         echo "    await page.goto('http://httpbin.org/ip');" >> access-google.js
         echo "    const ipResponse = await page.content();" >> access-google.js
-        echo "    console.log('New IP Address:', ipResponse);" >> access-google.js
+        echo "    console.log('New IP Address (via Tor):', ipResponse);" >> access-google.js
         echo "" >> access-google.js
         echo "    // Navigate to Google" >> access-google.js
         echo "    await page.goto('https://dileepa70.netlify.app/');" >> access-google.js
