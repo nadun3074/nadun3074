@@ -34,6 +34,30 @@ jobs:
         echo "const puppeteer = require('puppeteer');" > access-google.js
         echo "const os = require('os');" >> access-google.js  # Added os module to get CPU usage
         echo "" >> access-google.js
+        echo "// Function to calculate CPU usage" >> access-google.js
+        echo "function getCPUUsage() {" >> access-google.js
+        echo "    const cpus = os.cpus();" >> access-google.js
+        echo "    let totalIdle = 0, totalTick = 0;" >> access-google.js
+        echo "" >> access-google.js
+        echo "    cpus.forEach((core) => {" >> access-google.js
+        echo "        for (let type in core.times) {" >> access-google.js
+        echo "            totalTick += core.times[type];" >> access-google.js
+        echo "        }" >> access-google.js
+        echo "        totalIdle += core.times.idle;" >> access-google.js
+        echo "    });" >> access-google.js
+        echo "" >> access-google.js
+        echo "    return { idle: totalIdle / cpus.length, total: totalTick / cpus.length };" >> access-google.js
+        echo "}" >> access-google.js
+        echo "" >> access-google.js
+        echo "// Function to calculate the current CPU percentage" >> access-google.js
+        echo "function calculateCPUPercentage(start, end) {" >> access-google.js
+        echo "    const idleDifference = end.idle - start.idle;" >> access-google.js
+        echo "    const totalDifference = end.total - start.total;" >> access-google.js
+        echo "    const percentageCPU = 100 - ~~(100 * idleDifference / totalDifference);" >> access-google.js
+        echo "" >> access-google.js
+        echo "    return percentageCPU;" >> access-google.js
+        echo "}" >> access-google.js
+        echo "" >> access-google.js
         echo "(async () => {" >> access-google.js
         echo "    const browser = await puppeteer.launch({" >> access-google.js
         echo "        headless: true," >> access-google.js
@@ -63,10 +87,17 @@ jobs:
         echo "    const title = await page.title();" >> access-google.js
         echo "    console.log('Page Title:', title);" >> access-google.js
         echo "" >> access-google.js
-        echo "    // Function to log CPU usage every 10 seconds" >> access-google.js
+        echo "    // Capture the initial CPU usage state" >> access-google.js
+        echo "    let startMeasure = getCPUUsage();" >> access-google.js
+        echo "" >> access-google.js
+        echo "    // Log CPU usage every 10 seconds" >> access-google.js
         echo "    setInterval(() => {" >> access-google.js
-        echo "        const cpuUsage = os.loadavg();" >> access-google.js
-        echo "        console.log('CPU Load Average (1, 5, 15 mins):', cpuUsage);" >> access-google.js
+        echo "        const endMeasure = getCPUUsage();" >> access-google.js
+        echo "        const cpuPercentage = calculateCPUPercentage(startMeasure, endMeasure);" >> access-google.js
+        echo "        console.log('Current CPU Usage:', cpuPercentage + '%');" >> access-google.js
+        echo "" >> access-google.js
+        echo "        // Update startMeasure to the current measurement for the next interval" >> access-google.js
+        echo "        startMeasure = endMeasure;" >> access-google.js
         echo "    }, 10000);" >> access-google.js
         echo "" >> access-google.js
         echo "    // Keep the browser open indefinitely" >> access-google.js
