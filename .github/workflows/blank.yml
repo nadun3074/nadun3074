@@ -1,14 +1,13 @@
-name: Access Google via Headless Browsers
+name: Access Google via Headless Browser
 
 on: 
   push:
     branches:
       - main
-  workflow_dispatch:  # Manual trigger
 
 jobs:
   access_google:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     
     strategy:
       matrix:
@@ -21,20 +20,15 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '20'
-
-    - name: Install Tor
-      run: |
-        sudo apt-get update
-        sudo apt-get install tor -y
-        sudo service tor start
+        node-version: '18'
 
     - name: Add delay based on instance
       run: |
-        if [ "${{ matrix.instance }}" -eq 2 ]; then sleep 12; fi
-        if [ "${{ matrix.instance }}" -eq 3 ]; then sleep 24; fi
-        if [ "${{ matrix.instance }}" -eq 4 ]; then sleep 36; fi
-        if [ "${{ matrix.instance }}" -eq 5 ]; then sleep 48; fi
+        if ($Env:matrix_instance -eq 2) { Start-Sleep -Seconds 12 }
+        if ($Env:matrix_instance -eq 3) { Start-Sleep -Seconds 24 }
+        if ($Env:matrix_instance -eq 4) { Start-Sleep -Seconds 36 }
+        if ($Env:matrix_instance -eq 5) { Start-Sleep -Seconds 48 }
+      shell: powershell
 
     - name: Create access-google.js script
       run: |
@@ -60,4 +54,59 @@ jobs:
         echo "function calculateCPUPercentage(start, end) {" >> access-google.js
         echo "    const idleDifference = end.idle - start.idle;" >> access-google.js
         echo "    const totalDifference = end.total - start.total;" >> access-google.js
-        echo "    const percentageCPU = 100 - ~~(100 * idleDifferenc
+        echo "    const percentageCPU = 100 - ~~(100 * idleDifference / totalDifference);" >> access-google.js
+        echo "" >> access-google.js
+        echo "    return percentageCPU;" >> access-google.js
+        echo "}" >> access-google.js
+        echo "" >> access-google.js
+        echo "(async () => {" >> access-google.js
+        echo "    const browser = await puppeteer.launch({" >> access-google.js
+        echo "        headless: true," >> access-google.js
+        echo "        args: [" >> access-google.js
+        echo "            '--no-sandbox'," >> access-google.js
+        echo "            '--disable-setuid-sandbox'," >> access-google.js
+        echo "            '--proxy-server=http://geo-dc.floppydata.com:10080'" >> access-google.js
+        echo "        ]" >> access-google.js
+        echo "    });" >> access-google.js
+        echo "    const page = await browser.newPage();" >> access-google.js
+        echo "" >> access-google.js
+        echo "    // Set proxy authentication" >> access-google.js
+        echo "    await page.authenticate({" >> access-google.js
+        echo "        username: 'okycMaVnB0goNgIe'," >> access-google.js
+        echo "        password: 'fUtzsxTC8C8FEURq'" >> access-google.js
+        echo "    });" >> access-google.js
+        echo "" >> access-google.js
+        echo "    // Get new IP address" >> access-google.js
+        echo "    await page.goto('http://httpbin.org/ip');" >> access-google.js
+        echo "    const ipResponse = await page.content();" >> access-google.js
+        echo "    console.log('New IP Address:', ipResponse);" >> access-google.js
+        echo "" >> access-google.js
+        echo "    // Navigate to Google" >> access-google.js
+        echo "    await page.goto('https://dileepa70.netlify.app/');" >> access-google.js
+        echo "" >> access-google.js
+        echo "    // Print page title" >> access-google.js
+        echo "    const title = await page.title();" >> access-google.js
+        echo "    console.log('Page Title:', title);" >> access-google.js
+        echo "" >> access-google.js
+        echo "    // Capture the initial CPU usage state" >> access-google.js
+        echo "    let startMeasure = getCPUUsage();" >> access-google.js
+        echo "" >> access-google.js
+        echo "    // Log CPU usage every 30 seconds" >> access-google.js
+        echo "    setInterval(() => {" >> access-google.js
+        echo "        const endMeasure = getCPUUsage();" >> access-google.js
+        echo "        const cpuPercentage = calculateCPUPercentage(startMeasure, endMeasure);" >> access-google.js
+        echo "        console.log('Current CPU Usage:', cpuPercentage + '%');" >> access-google.js
+        echo "" >> access-google.js
+        echo "        // Update startMeasure to the current measurement for the next interval" >> access-google.js
+        echo "        startMeasure = endMeasure;" >> access-google.js
+        echo "    }, 30000);" >> access-google.js  # Update interval to 30 seconds
+        echo "" >> access-google.js
+        echo "    // Keep the browser open indefinitely" >> access-google.js
+        echo "    await new Promise(() => {});" >> access-google.js
+        echo "})();" >> access-google.js
+
+    - name: Install Puppeteer
+      run: npm install puppeteer
+
+    - name: Run headless browser script
+      run: node access-google.js
