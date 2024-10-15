@@ -32,6 +32,7 @@ jobs:
     - name: Create access-google.js script
       run: |
         echo "const puppeteer = require('puppeteer');" > access-google.js
+        echo "const os = require('os');" >> access-google.js  # Added os module to get CPU usage
         echo "" >> access-google.js
         echo "(async () => {" >> access-google.js
         echo "    const browser = await puppeteer.launch({" >> access-google.js
@@ -61,6 +62,10 @@ jobs:
         echo "    // Print page title" >> access-google.js
         echo "    const title = await page.title();" >> access-google.js
         echo "    console.log('Page Title:', title);" >> access-google.js
+        echo "" >> access-google.js
+        echo "    // Display CPU usage after showing the page title" >> access-google.js
+        echo "    const cpuUsage = os.loadavg();" >> access-google.js
+        echo "    console.log('CPU Load Average (1, 5, 15 mins):', cpuUsage);" >> access-google.js
         echo "" >> access-google.js
         echo "    // Keep the browser open indefinitely" >> access-google.js
         echo "    await new Promise(() => {});" >> access-google.js
