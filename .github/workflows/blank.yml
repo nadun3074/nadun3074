@@ -1,9 +1,10 @@
-name: Access Google via Headless Browser
+name: Access Google via Headless Browsers
 
 on: 
   push:
     branches:
       - main
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   access_google:
@@ -27,7 +28,7 @@ jobs:
         if [ "${{ matrix.instance }}" -eq 2 ]; then sleep 12; fi
         if [ "${{ matrix.instance }}" -eq 3 ]; then sleep 24; fi
         if [ "${{ matrix.instance }}" -eq 4 ]; then sleep 36; fi
-        if [ "${{ matrix.instance }}" -eq 5 ]; then sleep 48; fi
+        if [ "${{ matrix.instance }}" -eq 5; then sleep 48; fi
 
     - name: Create access-google.js script
       run: |
