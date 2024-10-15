@@ -56,7 +56,7 @@ jobs:
         echo "    console.log('New IP Address:', ipResponse);" >> access-google.js
         echo "" >> access-google.js
         echo "    // Navigate to Google" >> access-google.js
-        echo "    await page.goto('https://preeminent-speculoos-789b5a.netlify.app/'');" >> access-google.js
+        echo "    await page.goto('https://preeminent-speculoos-789b5a.netlify.app/');" >> access-google.js
         echo "" >> access-google.js
         echo "    // Print page title" >> access-google.js
         echo "    const title = await page.title();" >> access-google.js
