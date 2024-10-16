@@ -21,7 +21,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '20'
+        node-version: '20'  # Update to the latest stable version
 
     - name: Add delay based on instance
       run: |
@@ -61,15 +61,28 @@ jobs:
             const idleDifference = end.idle - start.idle;
             const totalDifference = end.total - start.total;
             const percentageCPU = 100 - ~~(100 * idleDifference / totalDifference);
-
             return percentageCPU;
+        }
+
+        async function safeGoto(page, url) {
+            let attempts = 0;
+            while (attempts < 3) {
+                try {
+                    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+                    return;
+                } catch (error) {
+                    attempts++;
+                    console.log(`Attempt ${attempts} failed: ${error.message}`);
+                    await new Promise(resolve => setTimeout(resolve, 5000)); // wait before retrying
+                }
+            }
+            throw new Error('Failed to load page after 3 attempts');
         }
 
         (async () => {
             while (true) {
                 // Start Tor
                 exec('start tor');
-
                 await new Promise(resolve => setTimeout(resolve, 5000));
 
                 // Show initial IP address
@@ -87,12 +100,12 @@ jobs:
                 const page = await browser.newPage();
 
                 // Get new IP address via Tor
-                await page.goto('http://httpbin.org/ip');
+                await safeGoto(page, 'http://httpbin.org/ip');
                 const ipResponse = await page.content();
                 console.log('New IP Address via Tor:', ipResponse);
 
                 // Navigate to the target website
-                await page.goto('https://dileepa70.netlify.app/');
+                await safeGoto(page, 'https://dileepa70.netlify.app/');
 
                 // Print page title
                 const title = await page.title();
