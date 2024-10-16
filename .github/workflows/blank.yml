@@ -26,7 +26,15 @@ jobs:
     - name: Install Tor
       run: |
         choco install tor -y
-        Start-Process 'C:\ProgramData\chocolatey\lib\tor\tools\tor.exe' -ArgumentList '-f', 'C:\ProgramData\chocolatey\lib\tor\tools\torrc' -NoNewWindow
+        # Wait a bit for installation to complete
+        Start-Sleep -Seconds 10
+        # Check if Tor is installed before trying to start it
+        if (Test-Path 'C:\ProgramData\chocolatey\lib\tor\tools\tor.exe') {
+          Start-Process 'C:\ProgramData\chocolatey\lib\tor\tools\tor.exe' -ArgumentList '-f', 'C:\ProgramData\chocolatey\lib\tor\tools\torrc' -NoNewWindow
+        } else {
+          Write-Error "Tor executable not found."
+          exit 1
+        }
 
     - name: Create access-google.js script
       run: |
