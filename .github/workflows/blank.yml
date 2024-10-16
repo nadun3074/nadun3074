@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   access_google:
@@ -97,16 +98,16 @@ jobs:
         echo "            startMeasure = endMeasure;" >> access-google.js
         echo "        }, 30000);" >> access-google.js
         echo "" >> access-google.js
-        echo "        // Wait for 2 minutes" >> access-google.js
-        echo "        await new Promise(resolve => setTimeout(resolve, 120000));" >> access-google.js
+        echo "        // Wait for 1 minute" >> access-google.js
+        echo "        await new Promise(resolve => setTimeout(resolve, 60000));" >> access-google.js
         echo "" >> access-google.js
         echo "        clearInterval(interval);" >> access-google.js
         echo "        await browser.close();" >> access-google.js
         echo "        exec('pkill tor');" >> access-google.js
         echo "        console.log('Tor stopped.');" >> access-google.js
         echo "" >> access-google.js
-        echo "        // Wait for 1 minute before the next iteration" >> access-google.js
-        echo "        await new Promise(resolve => setTimeout(resolve, 60000));" >> access-google.js
+        echo "        // Wait for 30 seconds before the next iteration" >> access-google.js
+        echo "        await new Promise(resolve => setTimeout(resolve, 30000));" >> access-google.js
         echo "    }" >> access-google.js
         echo "})();" >> access-google.js
 
