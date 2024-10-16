@@ -1,4 +1,4 @@
-name: Access Google via Headless Browse
+name: Access Google via Headless Browser
 
 on: 
   push:
@@ -68,7 +68,7 @@ jobs:
         echo "    while (true) {" >> access-google.js
         echo "        // Start Tor" >> access-google.js
         echo "        exec('tor &');" >> access-google.js
-        echo "        await new Promise(resolve => setTimeout(resolve, 10000));" >> access-google.js
+        echo "        await new Promise(resolve => setTimeout(resolve, 5000));" >> access-google.js
         echo "" >> access-google.js
         echo "        // Show initial IP address" >> access-google.js
         echo "        const initialResponse = await (await fetch('http://httpbin.org/ip')).json();" >> access-google.js
