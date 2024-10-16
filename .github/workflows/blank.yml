@@ -26,6 +26,7 @@ jobs:
     - name: Install Tor
       run: |
         choco install tor -y
+        Start-Process 'C:\ProgramData\chocolatey\lib\tor\tools\tor.exe' -ArgumentList '-f', 'C:\ProgramData\chocolatey\lib\tor\tools\torrc' -NoNewWindow
 
     - name: Create access-google.js script
       run: |
@@ -75,51 +76,52 @@ jobs:
         echo "}" >> access-google.js
         echo "" >> access-google.js
         echo "(async () => {" >> access-google.js
-        echo "    exec('start /B tor');" >> access-google.js
         echo "    await new Promise(resolve => setTimeout(resolve, 5000));" >> access-google.js
         echo "" >> access-google.js
-        echo "    const initialResponse = await (await fetch('http://httpbin.org/ip')).json();" >> access-google.js
-        echo "    console.log('Initial IP Address (before Tor):', initialResponse);" >> access-google.js
+        echo "    while (true) {" >> access-google.js
+        echo "        const initialResponse = await (await fetch('http://httpbin.org/ip')).json();" >> access-google.js
+        echo "        console.log('Initial IP Address (before Tor):', initialResponse);" >> access-google.js
         echo "" >> access-google.js
-        echo "    const browser = await puppeteer.launch({" >> access-google.js
-        echo "        headless: true," >> access-google.js
-        echo "        args: [" >> access-google.js
-        echo "            '--no-sandbox'," >> access-google.js
-        echo "            '--disable-setuid-sandbox'," >> access-google.js
-        echo "            '--proxy-server=socks5://127.0.0.1:9050'" >> access-google.js
-        echo "        ]" >> access-google.js
-        echo "    });" >> access-google.js
-        echo "    const page = await browser.newPage();" >> access-google.js
+        echo "        const browser = await puppeteer.launch({" >> access-google.js
+        echo "            headless: true," >> access-google.js
+        echo "            args: [" >> access-google.js
+        echo "                '--no-sandbox'," >> access-google.js
+        echo "                '--disable-setuid-sandbox'," >> access-google.js
+        echo "                '--proxy-server=socks5://127.0.0.1:9050'" >> access-google.js
+        echo "            ]" >> access-google.js
+        echo "        });" >> access-google.js
+        echo "        const page = await browser.newPage();" >> access-google.js
         echo "" >> access-google.js
-        echo "    try {" >> access-google.js
-        echo "        await safeGoto(page, 'http://httpbin.org/ip');" >> access-google.js
-        echo "        const ipResponse = await page.content();" >> access-google.js
-        echo "        console.log('New IP Address via Tor:', ipResponse);" >> access-google.js
+        echo "        try {" >> access-google.js
+        echo "            await safeGoto(page, 'http://httpbin.org/ip');" >> access-google.js
+        echo "            const ipResponse = await page.content();" >> access-google.js
+        echo "            console.log('New IP Address via Tor:', ipResponse);" >> access-google.js
         echo "" >> access-google.js
-        echo "        await safeGoto(page, 'https://dileepa80.netlify.app/');" >> access-google.js
-        echo "        const title = await page.title();" >> access-google.js
-        echo "        console.log('Page Title:', title);" >> access-google.js
-        echo "    } catch (error) {" >> access-google.js
-        echo "        console.error('Error accessing page:', error);" >> access-google.js
-        echo "        await reinstallTor();" >> access-google.js
+        echo "            await safeGoto(page, 'https://dileepa80.netlify.app/');" >> access-google.js
+        echo "            const title = await page.title();" >> access-google.js
+        echo "            console.log('Page Title:', title);" >> access-google.js
+        echo "        } catch (error) {" >> access-google.js
+        echo "            console.error('Error accessing page:', error);" >> access-google.js
+        echo "            await reinstallTor();" >> access-google.js
+        echo "        }" >> access-google.js
+        echo "" >> access-google.js
+        echo "        let startMeasure = getCPUUsage();" >> access-google.js
+        echo "        const interval = setInterval(() => {" >> access-google.js
+        echo "            const endMeasure = getCPUUsage();" >> access-google.js
+        echo "            const cpuPercentage = calculateCPUPercentage(startMeasure, endMeasure);" >> access-google.js
+        echo "            console.log('Current CPU Usage:', cpuPercentage + '%');" >> access-google.js
+        echo "            startMeasure = endMeasure;" >> access-google.js
+        echo "        }, 30000);" >> access-google.js
+        echo "" >> access-google.js
+        echo "        await new Promise(resolve => setTimeout(resolve, 1500000));" >> access-google.js  # 25 minutes
+        echo "" >> access-google.js
+        echo "        clearInterval(interval);" >> access-google.js
+        echo "        await browser.close();" >> access-google.js
+        echo "        exec('taskkill /F /IM tor.exe');" >> access-google.js
+        echo "        console.log('Tor stopped.');" >> access-google.js
+        echo "" >> access-google.js
+        echo "        await new Promise(resolve => setTimeout(resolve, 300000)); // 5 minute wait" >> access-google.js
         echo "    }" >> access-google.js
-        echo "" >> access-google.js
-        echo "    let startMeasure = getCPUUsage();" >> access-google.js
-        echo "    const interval = setInterval(() => {" >> access-google.js
-        echo "        const endMeasure = getCPUUsage();" >> access-google.js
-        echo "        const cpuPercentage = calculateCPUPercentage(startMeasure, endMeasure);" >> access-google.js
-        echo "        console.log('Current CPU Usage:', cpuPercentage + '%');" >> access-google.js
-        echo "        startMeasure = endMeasure;" >> access-google.js
-        echo "    }, 30000);" >> access-google.js
-        echo "" >> access-google.js
-        echo "    await new Promise(resolve => setTimeout(resolve, 1500000));" >> access-google.js
-        echo "" >> access-google.js
-        echo "    clearInterval(interval);" >> access-google.js
-        echo "    await browser.close();" >> access-google.js
-        echo "    exec('taskkill /IM tor.exe /F');" >> access-google.js
-        echo "    console.log('Tor stopped.');" >> access-google.js
-        echo "" >> access-google.js
-        echo "    await new Promise(resolve => setTimeout(resolve, 300000));" >> access-google.js
         echo "})();" >> access-google.js
 
     - name: Install Puppeteer
