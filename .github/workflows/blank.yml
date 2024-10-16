@@ -72,7 +72,7 @@ jobs:
                     return;
                 } catch (error) {
                     attempts++;
-                    console.log(`Attempt ${attempts} failed: ${error.message}`);
+                    console.log(`Attempt ${attempts} failed: ${error.message}`);  // Corrected line
                     await new Promise(resolve => setTimeout(resolve, 5000)); // wait before retrying
                 }
             }
