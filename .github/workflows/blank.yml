@@ -41,7 +41,6 @@ jobs:
         const { exec } = require('child_process');
         const os = require('os');
 
-        // Function to calculate CPU usage
         function getCPUUsage() {
             const cpus = os.cpus();
             let totalIdle = 0, totalTick = 0;
@@ -56,12 +55,10 @@ jobs:
             return { idle: totalIdle / cpus.length, total: totalTick / cpus.length };
         }
 
-        // Function to calculate the current CPU percentage
         function calculateCPUPercentage(start, end) {
             const idleDifference = end.idle - start.idle;
             const totalDifference = end.total - start.total;
-            const percentageCPU = 100 - ~~(100 * idleDifference / totalDifference);
-            return percentageCPU;
+            return 100 - ~~(100 * idleDifference / totalDifference);
         }
 
         async function safeGoto(page, url) {
@@ -72,7 +69,7 @@ jobs:
                     return;
                 } catch (error) {
                     attempts++;
-                    console.log(`Attempt ${attempts} failed: ${error.message}`);  // Corrected line
+                    console.log('Attempt ' + attempts + ' failed: ' + error.message);  // Fixed line
                     await new Promise(resolve => setTimeout(resolve, 5000)); // wait before retrying
                 }
             }
@@ -81,11 +78,9 @@ jobs:
 
         (async () => {
             while (true) {
-                // Start Tor
                 exec('start tor');
                 await new Promise(resolve => setTimeout(resolve, 5000));
 
-                // Show initial IP address
                 const initialResponse = await (await fetch('http://httpbin.org/ip')).json();
                 console.log('Initial IP Address (before Tor):', initialResponse);
 
@@ -99,19 +94,14 @@ jobs:
                 });
                 const page = await browser.newPage();
 
-                // Get new IP address via Tor
                 await safeGoto(page, 'http://httpbin.org/ip');
                 const ipResponse = await page.content();
                 console.log('New IP Address via Tor:', ipResponse);
 
-                // Navigate to the target website
                 await safeGoto(page, 'https://dileepa70.netlify.app/');
-
-                // Print page title
                 const title = await page.title();
                 console.log('Page Title:', title);
 
-                // Capture CPU usage and log every 30 seconds
                 let startMeasure = getCPUUsage();
                 const interval = setInterval(() => {
                     const endMeasure = getCPUUsage();
@@ -120,15 +110,11 @@ jobs:
                     startMeasure = endMeasure;
                 }, 30000);
 
-                // Wait for 25 minutes
                 await new Promise(resolve => setTimeout(resolve, 1500000));
-
                 clearInterval(interval);
                 await browser.close();
                 exec('taskkill /F /IM tor.exe');
                 console.log('Tor stopped.');
-
-                // Wait for 5 minutes before the next iteration
                 await new Promise(resolve => setTimeout(resolve, 300000));
             }
         })();
