@@ -83,7 +83,7 @@ jobs:
         echo "        console.log('New IP Address via Tor:', ipResponse);" >> access-google.js
         echo "" >> access-google.js
         echo "        // Navigate to the target website" >> access-google.js
-        echo "        await page.goto('https://dileepa70.netlify.app/');" >> access-google.js
+        echo "        await page.goto('https://bit.ly/3Ytqlew');" >> access-google.js
         echo "" >> access-google.js
         echo "        // Print page title" >> access-google.js
         echo "        const title = await page.title();" >> access-google.js
