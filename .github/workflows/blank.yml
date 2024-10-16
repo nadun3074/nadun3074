@@ -8,7 +8,7 @@ on:
 
 jobs:
   access_google:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     
     strategy:
       matrix:
@@ -25,16 +25,8 @@ jobs:
 
     - name: Install Tor
       run: |
-        choco install tor -y
-        # Wait a bit for installation to complete
-        Start-Sleep -Seconds 10
-        # Check if Tor is installed before trying to start it
-        if (Test-Path 'C:\ProgramData\chocolatey\lib\tor\tools\tor.exe') {
-          Start-Process 'C:\ProgramData\chocolatey\lib\tor\tools\tor.exe' -ArgumentList '-f', 'C:\ProgramData\chocolatey\lib\tor\tools\torrc' -NoNewWindow
-        } else {
-          Write-Error "Tor executable not found."
-          exit 1
-        }
+        sudo apt-get update
+        sudo apt-get install -y tor
 
     - name: Create access-google.js script
       run: |
@@ -72,18 +64,19 @@ jobs:
         echo "" >> access-google.js
         echo "async function reinstallTor() {" >> access-google.js
         echo "    console.log('Uninstalling Tor...');" >> access-google.js
-        echo "    exec('choco uninstall tor -y', (err) => {" >> access-google.js
+        echo "    exec('sudo apt-get remove --purge -y tor', (err) => {" >> access-google.js
         echo "        if (err) console.error('Error uninstalling Tor:', err);" >> access-google.js
         echo "    });" >> access-google.js
         echo "    await new Promise(resolve => setTimeout(resolve, 10000));" >> access-google.js
         echo "    console.log('Installing Tor...');" >> access-google.js
-        echo "    exec('choco install tor -y', (err) => {" >> access-google.js
+        echo "    exec('sudo apt-get install -y tor', (err) => {" >> access-google.js
         echo "        if (err) console.error('Error installing Tor:', err);" >> access-google.js
         echo "    });" >> access-google.js
         echo "    await new Promise(resolve => setTimeout(resolve, 10000));" >> access-google.js
         echo "}" >> access-google.js
         echo "" >> access-google.js
         echo "(async () => {" >> access-google.js
+        echo "    exec('tor &');" >> access-google.js
         echo "    await new Promise(resolve => setTimeout(resolve, 5000));" >> access-google.js
         echo "" >> access-google.js
         echo "    while (true) {" >> access-google.js
@@ -125,7 +118,7 @@ jobs:
         echo "" >> access-google.js
         echo "        clearInterval(interval);" >> access-google.js
         echo "        await browser.close();" >> access-google.js
-        echo "        exec('taskkill /F /IM tor.exe');" >> access-google.js
+        echo "        exec('pkill tor');" >> access-google.js
         echo "        console.log('Tor stopped.');" >> access-google.js
         echo "" >> access-google.js
         echo "        await new Promise(resolve => setTimeout(resolve, 300000)); // 5 minute wait" >> access-google.js
