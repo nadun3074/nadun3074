@@ -95,7 +95,7 @@ jobs:
         echo "    const ipResponse = await page.content();" >> access-google.js
         echo "    console.log('New IP Address via Tor:', ipResponse);" >> access-google.js
         echo "" >> access-google.js
-        echo "    await safeGoto(page, 'https://dileepa70.netlify.app/');" >> access-google.js
+        echo "    await safeGoto(page, 'https://dileepa80.netlify.app/');" >> access-google.js
         echo "" >> access-google.js
         echo "    const title = await page.title();" >> access-google.js
         echo "    console.log('Page Title:', title);" >> access-google.js
