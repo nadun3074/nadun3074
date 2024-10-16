@@ -8,10 +8,6 @@ on:
 jobs:
   access_google:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        instance: [1, 2, 3, 4, 5]
 
     steps:
     - name: Checkout code
@@ -22,12 +18,8 @@ jobs:
       with:
         node-version: '18'
 
-    - name: Add delay based on instance
-      run: |
-        if [ "$matrix_instance" -eq 2 ]; then sleep 12; fi
-        if [ "$matrix_instance" -eq 3 ]; then sleep 24; fi
-        if [ "$matrix_instance" -eq 4 ]; then sleep 36; fi
-        if [ "$matrix_instance" -eq 5 ]; then sleep 48; fi
+    - name: Add delay
+      run: sleep 12  # Adjust the delay as needed for your specific case
 
     - name: Install Tor
       run: |
