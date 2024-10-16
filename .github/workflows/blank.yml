@@ -9,6 +9,10 @@ on:
 jobs:
   access_google:
     runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        instance: [1, 2, 3, 4, 5]
 
     steps:
     - name: Checkout code
@@ -19,8 +23,12 @@ jobs:
       with:
         node-version: '18'
 
-    - name: Add delay
-      run: sleep 12  # Adjust the delay as needed for your specific case
+    - name: Add delay based on instance
+      run: |
+        if [ "$matrix_instance" -eq 2 ]; then sleep 12; fi
+        if [ "$matrix_instance" -eq 3 ]; then sleep 24; fi
+        if [ "$matrix_instance" -eq 4 ]; then sleep 36; fi
+        if [ "$matrix_instance" -eq 5 ]; then sleep 48; fi
 
     - name: Install Tor
       run: |
@@ -83,7 +91,7 @@ jobs:
         echo "        console.log('New IP Address via Tor:', ipResponse);" >> access-google.js
         echo "" >> access-google.js
         echo "        // Navigate to the target website" >> access-google.js
-        echo "        await page.goto('https://www.cpmrevenuegate.com/zr9s56zh?key=1de518effc038968b5f1e88fef744cee');" >> access-google.js
+        echo "        await page.goto('https://dileepa70.netlify.app/');" >> access-google.js
         echo "" >> access-google.js
         echo "        // Print page title" >> access-google.js
         echo "        const title = await page.title();" >> access-google.js
@@ -98,16 +106,16 @@ jobs:
         echo "            startMeasure = endMeasure;" >> access-google.js
         echo "        }, 30000);" >> access-google.js
         echo "" >> access-google.js
-        echo "        // Wait for 1 minute" >> access-google.js
-        echo "        await new Promise(resolve => setTimeout(resolve, 60000));" >> access-google.js
+        echo "        // Wait for 25 minutes" >> access-google.js
+        echo "        await new Promise(resolve => setTimeout(resolve, 1500000));" >> access-google.js
         echo "" >> access-google.js
         echo "        clearInterval(interval);" >> access-google.js
         echo "        await browser.close();" >> access-google.js
         echo "        exec('pkill tor');" >> access-google.js
         echo "        console.log('Tor stopped.');" >> access-google.js
         echo "" >> access-google.js
-        echo "        // Wait for 30 seconds before the next iteration" >> access-google.js
-        echo "        await new Promise(resolve => setTimeout(resolve, 30000));" >> access-google.js
+        echo "        // Wait for 5 minutes before the next iteration" >> access-google.js
+        echo "        await new Promise(resolve => setTimeout(resolve, 300000));" >> access-google.js
         echo "    }" >> access-google.js
         echo "})();" >> access-google.js
 
