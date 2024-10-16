@@ -8,7 +8,7 @@ on:
 
 jobs:
   access_google:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     
     strategy:
       matrix:
@@ -25,8 +25,7 @@ jobs:
 
     - name: Install Tor
       run: |
-        sudo apt-get update
-        sudo apt-get install -y tor
+        choco install tor -y
 
     - name: Create access-google.js script
       run: |
@@ -55,27 +54,28 @@ jobs:
         echo "}" >> access-google.js
         echo "" >> access-google.js
         echo "async function safeGoto(page, url) {" >> access-google.js
-        echo "    let attempts = 0;" >> access-google.js
-        echo "    while (attempts < 3) {" >> access-google.js
-        echo "        try {" >> access-google.js
-        echo "            await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });" >> access-google.js
-        echo "            return;" >> access-google.js
-        echo "        } catch (error) {" >> access-google.js
-        echo "            attempts++;" >> access-google.js
-        echo "            console.log(`Attempt ${attempts} failed: ${error.message}`);" >> access-google.js
-        echo "            if (attempts < 3) {" >> access-google.js
-        echo "                console.log('Restarting Tor...');" >> access-google.js
-        echo "                exec('pkill tor');" >> access-google.js
-        echo "                exec('tor &');" >> access-google.js
-        echo "                await new Promise(resolve => setTimeout(resolve, 5000));" >> access-google.js
-        echo "            }" >> access-google.js
-        echo "        }" >> access-google.js
+        echo "    try {" >> access-google.js
+        echo "        await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });" >> access-google.js
+        echo "    } catch (error) {" >> access-google.js
+        echo "        throw new Error('Failed to load page: ' + error.message);" >> access-google.js
         echo "    }" >> access-google.js
-        echo "    throw new Error('Failed to load page after 3 attempts');" >> access-google.js
+        echo "}" >> access-google.js
+        echo "" >> access-google.js
+        echo "async function reinstallTor() {" >> access-google.js
+        echo "    console.log('Uninstalling Tor...');" >> access-google.js
+        echo "    exec('choco uninstall tor -y', (err) => {" >> access-google.js
+        echo "        if (err) console.error('Error uninstalling Tor:', err);" >> access-google.js
+        echo "    });" >> access-google.js
+        echo "    await new Promise(resolve => setTimeout(resolve, 10000));" >> access-google.js
+        echo "    console.log('Installing Tor...');" >> access-google.js
+        echo "    exec('choco install tor -y', (err) => {" >> access-google.js
+        echo "        if (err) console.error('Error installing Tor:', err);" >> access-google.js
+        echo "    });" >> access-google.js
+        echo "    await new Promise(resolve => setTimeout(resolve, 10000));" >> access-google.js
         echo "}" >> access-google.js
         echo "" >> access-google.js
         echo "(async () => {" >> access-google.js
-        echo "    exec('tor &');" >> access-google.js
+        echo "    exec('start /B tor');" >> access-google.js
         echo "    await new Promise(resolve => setTimeout(resolve, 5000));" >> access-google.js
         echo "" >> access-google.js
         echo "    const initialResponse = await (await fetch('http://httpbin.org/ip')).json();" >> access-google.js
@@ -91,14 +91,18 @@ jobs:
         echo "    });" >> access-google.js
         echo "    const page = await browser.newPage();" >> access-google.js
         echo "" >> access-google.js
-        echo "    await safeGoto(page, 'http://httpbin.org/ip');" >> access-google.js
-        echo "    const ipResponse = await page.content();" >> access-google.js
-        echo "    console.log('New IP Address via Tor:', ipResponse);" >> access-google.js
+        echo "    try {" >> access-google.js
+        echo "        await safeGoto(page, 'http://httpbin.org/ip');" >> access-google.js
+        echo "        const ipResponse = await page.content();" >> access-google.js
+        echo "        console.log('New IP Address via Tor:', ipResponse);" >> access-google.js
         echo "" >> access-google.js
-        echo "    await safeGoto(page, 'https://dileepa80.netlify.app/');" >> access-google.js
-        echo "" >> access-google.js
-        echo "    const title = await page.title();" >> access-google.js
-        echo "    console.log('Page Title:', title);" >> access-google.js
+        echo "        await safeGoto(page, 'https://dileepa70.netlify.app/');" >> access-google.js
+        echo "        const title = await page.title();" >> access-google.js
+        echo "        console.log('Page Title:', title);" >> access-google.js
+        echo "    } catch (error) {" >> access-google.js
+        echo "        console.error('Error accessing page:', error);" >> access-google.js
+        echo "        await reinstallTor();" >> access-google.js
+        echo "    }" >> access-google.js
         echo "" >> access-google.js
         echo "    let startMeasure = getCPUUsage();" >> access-google.js
         echo "    const interval = setInterval(() => {" >> access-google.js
@@ -112,7 +116,7 @@ jobs:
         echo "" >> access-google.js
         echo "    clearInterval(interval);" >> access-google.js
         echo "    await browser.close();" >> access-google.js
-        echo "    exec('pkill tor');" >> access-google.js
+        echo "    exec('taskkill /IM tor.exe /F');" >> access-google.js
         echo "    console.log('Tor stopped.');" >> access-google.js
         echo "" >> access-google.js
         echo "    await new Promise(resolve => setTimeout(resolve, 300000));" >> access-google.js
