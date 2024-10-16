@@ -1,4 +1,4 @@
-name: Access Google via Headless Browser
+name: Access Google via Headless Browse
 
 on: 
   push:
