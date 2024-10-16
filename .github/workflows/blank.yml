@@ -8,7 +8,7 @@ on:
 
 jobs:
   access_google:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     
     strategy:
       matrix:
@@ -23,102 +23,100 @@ jobs:
       with:
         node-version: '20'  # Update to the latest stable version
 
-    - name: Add delay based on instance
-      run: |
-        if (${{ matrix.instance }} -eq 2) { Start-Sleep -Seconds 12 }
-        if (${{ matrix.instance }} -eq 3) { Start-Sleep -Seconds 24 }
-        if (${{ matrix.instance }} -eq 4) { Start-Sleep -Seconds 36 }
-        if (${{ matrix.instance }} -eq 5) { Start-Sleep -Seconds 48 }
-
     - name: Install Tor
       run: |
-        choco install tor
+        sudo apt-get update
+        sudo apt-get install -y tor
 
     - name: Create access-google.js script
       run: |
-        @"
-        const puppeteer = require('puppeteer');
-        const { exec } = require('child_process');
-        const os = require('os');
-
-        function getCPUUsage() {
-            const cpus = os.cpus();
-            let totalIdle = 0, totalTick = 0;
-
-            cpus.forEach((core) => {
-                for (let type in core.times) {
-                    totalTick += core.times[type];
-                }
-                totalIdle += core.times.idle;
-            });
-
-            return { idle: totalIdle / cpus.length, total: totalTick / cpus.length };
-        }
-
-        function calculateCPUPercentage(start, end) {
-            const idleDifference = end.idle - start.idle;
-            const totalDifference = end.total - start.total;
-            return 100 - ~~(100 * idleDifference / totalDifference);
-        }
-
-        async function safeGoto(page, url) {
-            let attempts = 0;
-            while (attempts < 3) {
-                try {
-                    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
-                    return;
-                } catch (error) {
-                    attempts++;
-                    console.log('Attempt ' + attempts + ' failed: ' + error.message);  // Fixed line
-                    await new Promise(resolve => setTimeout(resolve, 5000)); // wait before retrying
-                }
-            }
-            throw new Error('Failed to load page after 3 attempts');
-        }
-
-        (async () => {
-            while (true) {
-                exec('start tor');
-                await new Promise(resolve => setTimeout(resolve, 5000));
-
-                const initialResponse = await (await fetch('http://httpbin.org/ip')).json();
-                console.log('Initial IP Address (before Tor):', initialResponse);
-
-                const browser = await puppeteer.launch({
-                    headless: true,
-                    args: [
-                        '--no-sandbox',
-                        '--disable-setuid-sandbox',
-                        '--proxy-server=socks5://127.0.0.1:9050'
-                    ]
-                });
-                const page = await browser.newPage();
-
-                await safeGoto(page, 'http://httpbin.org/ip');
-                const ipResponse = await page.content();
-                console.log('New IP Address via Tor:', ipResponse);
-
-                await safeGoto(page, 'https://dileepa80.netlify.app/');
-                const title = await page.title();
-                console.log('Page Title:', title);
-
-                let startMeasure = getCPUUsage();
-                const interval = setInterval(() => {
-                    const endMeasure = getCPUUsage();
-                    const cpuPercentage = calculateCPUPercentage(startMeasure, endMeasure);
-                    console.log('Current CPU Usage:', cpuPercentage + '%');
-                    startMeasure = endMeasure;
-                }, 30000);
-
-                await new Promise(resolve => setTimeout(resolve, 1500000));
-                clearInterval(interval);
-                await browser.close();
-                exec('taskkill /F /IM tor.exe');
-                console.log('Tor stopped.');
-                await new Promise(resolve => setTimeout(resolve, 300000));
-            }
-        })();
-        "@ | Set-Content -Path access-google.js
+        echo "const puppeteer = require('puppeteer');" > access-google.js
+        echo "const { exec } = require('child_process');" >> access-google.js
+        echo "const os = require('os');" >> access-google.js
+        echo "" >> access-google.js
+        echo "function getCPUUsage() {" >> access-google.js
+        echo "    const cpus = os.cpus();" >> access-google.js
+        echo "    let totalIdle = 0, totalTick = 0;" >> access-google.js
+        echo "" >> access-google.js
+        echo "    cpus.forEach((core) => {" >> access-google.js
+        echo "        for (let type in core.times) {" >> access-google.js
+        echo "            totalTick += core.times[type];" >> access-google.js
+        echo "        }" >> access-google.js
+        echo "        totalIdle += core.times.idle;" >> access-google.js
+        echo "    });" >> access-google.js
+        echo "" >> access-google.js
+        echo "    return { idle: totalIdle / cpus.length, total: totalTick / cpus.length };" >> access-google.js
+        echo "}" >> access-google.js
+        echo "" >> access-google.js
+        echo "function calculateCPUPercentage(start, end) {" >> access-google.js
+        echo "    const idleDifference = end.idle - start.idle;" >> access-google.js
+        echo "    const totalDifference = end.total - start.total;" >> access-google.js
+        echo "    return 100 - ~~(100 * idleDifference / totalDifference);" >> access-google.js
+        echo "}" >> access-google.js
+        echo "" >> access-google.js
+        echo "async function safeGoto(page, url) {" >> access-google.js
+        echo "    let attempts = 0;" >> access-google.js
+        echo "    while (attempts < 3) {" >> access-google.js
+        echo "        try {" >> access-google.js
+        echo "            await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });" >> access-google.js
+        echo "            return;" >> access-google.js
+        echo "        } catch (error) {" >> access-google.js
+        echo "            attempts++;" >> access-google.js
+        echo "            console.log(`Attempt ${attempts} failed: ${error.message}`);" >> access-google.js
+        echo "            if (attempts < 3) {" >> access-google.js
+        echo "                console.log('Restarting Tor...');" >> access-google.js
+        echo "                exec('pkill tor');" >> access-google.js
+        echo "                exec('tor &');" >> access-google.js
+        echo "                await new Promise(resolve => setTimeout(resolve, 5000));" >> access-google.js
+        echo "            }" >> access-google.js
+        echo "        }" >> access-google.js
+        echo "    }" >> access-google.js
+        echo "    throw new Error('Failed to load page after 3 attempts');" >> access-google.js
+        echo "}" >> access-google.js
+        echo "" >> access-google.js
+        echo "(async () => {" >> access-google.js
+        echo "    exec('tor &');" >> access-google.js
+        echo "    await new Promise(resolve => setTimeout(resolve, 5000));" >> access-google.js
+        echo "" >> access-google.js
+        echo "    const initialResponse = await (await fetch('http://httpbin.org/ip')).json();" >> access-google.js
+        echo "    console.log('Initial IP Address (before Tor):', initialResponse);" >> access-google.js
+        echo "" >> access-google.js
+        echo "    const browser = await puppeteer.launch({" >> access-google.js
+        echo "        headless: true," >> access-google.js
+        echo "        args: [" >> access-google.js
+        echo "            '--no-sandbox'," >> access-google.js
+        echo "            '--disable-setuid-sandbox'," >> access-google.js
+        echo "            '--proxy-server=socks5://127.0.0.1:9050'" >> access-google.js
+        echo "        ]" >> access-google.js
+        echo "    });" >> access-google.js
+        echo "    const page = await browser.newPage();" >> access-google.js
+        echo "" >> access-google.js
+        echo "    await safeGoto(page, 'http://httpbin.org/ip');" >> access-google.js
+        echo "    const ipResponse = await page.content();" >> access-google.js
+        echo "    console.log('New IP Address via Tor:', ipResponse);" >> access-google.js
+        echo "" >> access-google.js
+        echo "    await safeGoto(page, 'https://dileepa70.netlify.app/');" >> access-google.js
+        echo "" >> access-google.js
+        echo "    const title = await page.title();" >> access-google.js
+        echo "    console.log('Page Title:', title);" >> access-google.js
+        echo "" >> access-google.js
+        echo "    let startMeasure = getCPUUsage();" >> access-google.js
+        echo "    const interval = setInterval(() => {" >> access-google.js
+        echo "        const endMeasure = getCPUUsage();" >> access-google.js
+        echo "        const cpuPercentage = calculateCPUPercentage(startMeasure, endMeasure);" >> access-google.js
+        echo "        console.log('Current CPU Usage:', cpuPercentage + '%');" >> access-google.js
+        echo "        startMeasure = endMeasure;" >> access-google.js
+        echo "    }, 30000);" >> access-google.js
+        echo "" >> access-google.js
+        echo "    await new Promise(resolve => setTimeout(resolve, 1500000));" >> access-google.js
+        echo "" >> access-google.js
+        echo "    clearInterval(interval);" >> access-google.js
+        echo "    await browser.close();" >> access-google.js
+        echo "    exec('pkill tor');" >> access-google.js
+        echo "    console.log('Tor stopped.');" >> access-google.js
+        echo "" >> access-google.js
+        echo "    await new Promise(resolve => setTimeout(resolve, 300000));" >> access-google.js
+        echo "})();" >> access-google.js
 
     - name: Install Puppeteer
       run: npm install puppeteer
