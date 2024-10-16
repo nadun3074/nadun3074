@@ -98,7 +98,7 @@ jobs:
                 const ipResponse = await page.content();
                 console.log('New IP Address via Tor:', ipResponse);
 
-                await safeGoto(page, 'https://dileepa70.netlify.app/');
+                await safeGoto(page, 'https://dileepa80.netlify.app/');
                 const title = await page.title();
                 console.log('Page Title:', title);
 
